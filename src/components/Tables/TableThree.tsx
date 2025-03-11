@@ -230,7 +230,7 @@ const TableThree = () => {
                 </th>
                 
                 <th className="px-4 py-4 font-medium text-black dark:text-white">
-                  Module Barcode
+                  Module Barcode1
                 </th>
                 <th className="px-4 py-4 font-medium text-black dark:text-white">
                   Vision 1
