@@ -226,7 +226,7 @@ const TableThree = () => {
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="min-w-[2px] px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                  #
+                  Sr.No
                 </th>
                 
                 <th className="px-4 py-4 font-medium text-black dark:text-white">
@@ -316,10 +316,7 @@ const TableThree = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-
-            <div className="flex justify-between items-center mt-4">
+         <div className="flex justify-between items-center mt-4">
   <p className="text-sm text-gray-600">
     Showing {filteredData.length > 0 ? (currentPage - 1) * entriesToShow + 1 : 0} to{" "}
     {Math.min(currentPage * entriesToShow, filteredData.length)} of {filteredData.length} entries
@@ -353,6 +350,10 @@ const TableThree = () => {
     </button>
   </div>
 </div>
+              ))}
+            </tbody>
+
+         
 
           </table>
         </div>
