@@ -318,6 +318,42 @@ const TableThree = () => {
                 </tr>
               ))}
             </tbody>
+
+            <div className="flex justify-between items-center mt-4">
+  <p className="text-sm text-gray-600">
+    Showing {filteredData.length > 0 ? (currentPage - 1) * entriesToShow + 1 : 0} to{" "}
+    {Math.min(currentPage * entriesToShow, filteredData.length)} of {filteredData.length} entries
+  </p>
+
+  <div className="flex space-x-2">
+    <button
+      className="px-3 py-1 border rounded-md"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(currentPage - 1)}
+    >
+      Previous
+    </button>
+
+    {[...Array(Math.ceil(filteredData.length / entriesToShow)).keys()].map((page) => (
+      <button
+        key={page + 1}
+        className={`px-3 py-1 border rounded-md ${currentPage === page + 1 ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+        onClick={() => setCurrentPage(page + 1)}
+      >
+        {page + 1}
+      </button>
+    ))}
+
+    <button
+      className="px-3 py-1 border rounded-md"
+      disabled={currentPage === Math.ceil(filteredData.length / entriesToShow)}
+      onClick={() => setCurrentPage(currentPage + 1)}
+    >
+      Next
+    </button>
+  </div>
+</div>
+
           </table>
         </div>
       </div>
