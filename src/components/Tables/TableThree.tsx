@@ -316,7 +316,15 @@ const TableThree = () => {
                     </button>
                   </td>
                 </tr>
-         <div className="flex justify-between items-center mt-4">
+        
+              ))}
+            </tbody>
+
+         
+
+          </table>
+
+           <div className="flex justify-between items-center mt-4">
   <p className="text-sm text-gray-600">
     Showing {filteredData.length > 0 ? (currentPage - 1) * entriesToShow + 1 : 0} to{" "}
     {Math.min(currentPage * entriesToShow, filteredData.length)} of {filteredData.length} entries
@@ -350,12 +358,6 @@ const TableThree = () => {
     </button>
   </div>
 </div>
-              ))}
-            </tbody>
-
-         
-
-          </table>
         </div>
       </div>
 
