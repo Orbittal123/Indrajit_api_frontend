@@ -1,20 +1,20 @@
-"use client";
-
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import TableOne from "@/components/Tables/TableOne";
-import TableTwo from "@/components/Tables/TableTwo";
-import TableThree from "@/components/Tables/TableThree";
-import { useEffect, useState } from "react";
+import Chart from "@/components/Charts/page";
+import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import React from "react";
 
-const Page = () => {
+export const metadata: Metadata = {
+  title: "Next.js Chart | TailAdmin - Next.js Dashboard Template",
+  description:
+    "This is Next.js Chart page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+};
+
+const BasicChartPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <div>
-        <h1>History Page</h1>
-      </div>
+      <Chart />
     </DefaultLayout>
   );
 };
 
-export default Page;
+export default BasicChartPage;
