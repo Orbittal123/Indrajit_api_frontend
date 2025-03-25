@@ -153,6 +153,52 @@ const TableThree = () => {
     return <p>Error: {error}</p>;
   }
 
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredData.length / entriesToShow);
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5; // Maximum number of visible page buttons
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const halfVisible = Math.floor(maxVisiblePages / 2);
+      let start = Math.max(currentPage - halfVisible, 1);
+      let end = Math.min(start + maxVisiblePages - 1, totalPages);
+
+      if (end - start + 1 < maxVisiblePages) {
+        start = Math.max(end - maxVisiblePages + 1, 1);
+      }
+
+      if (start > 1) {
+        pages.push(1);
+        if (start > 2) {
+          pages.push('...');
+        }
+      }
+
+      for (let i = start; i <= end; i++) {
+        if (i !== 1 && i !== totalPages) {
+          pages.push(i);
+        }
+      }
+
+      if (end < totalPages) {
+        if (end < totalPages - 1) {
+          pages.push('...');
+        }
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
   return (
     <div>
       <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -320,6 +366,57 @@ const TableThree = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+
+      {/* Improved Pagination controls */}
+      <div className="flex items-center justify-between mt-4 p-4 bg-white dark:bg-boxdark rounded-sm border border-stroke dark:border-strokedark">
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          Showing <span className="font-medium">{(currentPage - 1) * entriesToShow + 1}</span> to{' '}
+          <span className="font-medium">{Math.min(currentPage * entriesToShow, filteredData.length)}</span> of{' '}
+          <span className="font-medium">{filteredData.length}</span> entries
+        </div>
+        
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded-md border ${
+              currentPage === 1 
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed' 
+                : 'bg-white dark:bg-boxdark text-primary dark:text-primary-dark border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+          >
+            Previous
+          </button>
+          
+          {getPageNumbers().map((page, index) => (
+            <button
+              key={index}
+              onClick={() => typeof page === 'number' && setCurrentPage(page)}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === page 
+                  ? 'bg-primary dark:bg-primary-dark text-white border-primary dark:border-primary-dark' 
+                  : 'bg-white dark:bg-boxdark border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-gray-800'
+              } ${page === '...' ? 'cursor-default' : 'cursor-pointer'}`}
+              disabled={page === '...'}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded-md border ${
+              currentPage === totalPages 
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed' 
+                : 'bg-white dark:bg-boxdark text-primary dark:text-primary-dark border-stroke dark:border-strokedark hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+          >
+            Next
+          </button>
         </div>
       </div>
 
