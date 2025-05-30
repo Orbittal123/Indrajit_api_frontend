@@ -151,9 +151,12 @@ app.post("/checkBarcode", async (req, res) => {
     // Process for checking module code completeness
     const moduleCode = scannedBarcode.substring(0, 6);
     console.log("Extracted ModuleCode:", moduleCode);
-    const moduleCountQuery = `SELECT COUNT(*) AS count FROM voltage_ir_admin WHERE ModuleCode = '${moduleCode}'`;
+    const moduleCountQuery = `
+          SELECT [sr_no], [module_code], [cell_count], [no_of_modules], [date_time]
+          FROM [replus_treceability].[dbo].[vision_pack_master]
+          WHERE module_code = '${moduleCode}'`
     const moduleCountResult = await queryMainDatabase(moduleCountQuery);
-    const moduleCount = moduleCountResult.recordset[0].count;
+    const moduleCount = moduleCountResult.recordset[0].cell_count;
     
     console.log("moduleCountQuery",moduleCountQuery);
     console.log("moduleCountResult",moduleCountResult);
