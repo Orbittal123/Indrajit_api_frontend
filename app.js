@@ -17,9 +17,9 @@ function broadcast(message) {
 // Database connection config
 const dbConfig = {
   user: "admin2",
-   password: "reset@123",
-   server: "REP-TRACE",
-   database: "replus_treceability",
+  password: "reset@123",
+  server: "REP-TRACE",
+  database: "replus_treceability",
   options: {
     encrypt: false,
     trustServerCertificate: true,
@@ -1017,12 +1017,18 @@ async function processVision2(tags, socket) {
     const dateResult = await request.query(`SELECT date_time, module_barcode FROM [replus_treceability].[dbo].[linking_module_RFID] WHERE RFID = '${RFID}'`);
 
     if (moduleType == 2) {
-      Double_module_barcode = await request.query(`WITH RankedRecords AS (SELECT [module_barcode], [v1_end_date], ROW_NUMBER() OVER (PARTITION BY [v1_end_date] ORDER BY [v1_end_date] DESC) AS RowNum FROM [replus_treceability].[dbo].[clw_station_status] WHERE [RFID] = '${RFID}') SELECT [module_barcode], [v1_end_date] FROM RankedRecords WHERE RowNum <= 2 ORDER BY [v1_end_date] DESC;`);
-      console.log("Double1233333 ", Double_module_barcode.recordset[0].module_barcode);
-      module_barcode1 = Double_module_barcode.recordset[0].module_barcode;
-
-      console.log(Double_module_barcode.recordset[1].module_barcode);
-      module_barcode2 = Double_module_barcode.recordset[1].module_barcode;
+      Double_module_barcode = await request.query(`
+  WITH RankedRecords AS (
+    SELECT [module_barcode], [v1_end_date],
+      ROW_NUMBER() OVER (ORDER BY [v1_end_date] DESC) AS RowNum
+    FROM [replus_treceability].[dbo].[clw_station_status]
+    WHERE [RFID] = '${RFID}'
+  )
+  SELECT [module_barcode], [v1_end_date]
+  FROM RankedRecords
+  WHERE RowNum <= 2
+  ORDER BY [v1_end_date] DESC;
+`);
     } else {
       MODULE_BARCODE_CLW = await request.query(`SELECT TOP 1 module_barcode FROM [replus_treceability].[dbo].[clw_station_status] WHERE RFID = '${RFID}' ORDER BY sr_no DESC`);
       Module_Code1 = MODULE_BARCODE_CLW.recordset[0].module_barcode && MODULE_BARCODE_CLW.recordset[0].module_barcode.split('_')[0];
