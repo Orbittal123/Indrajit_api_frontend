@@ -1017,18 +1017,18 @@ async function processVision2(tags, socket) {
     const dateResult = await request.query(`SELECT date_time, module_barcode FROM [replus_treceability].[dbo].[linking_module_RFID] WHERE RFID = '${RFID}'`);
 
     if (moduleType == 2) {
-      const Double_module_barcode = await request.query(`
-    WITH RankedRecords AS (
-      SELECT [module_barcode], [v1_end_date],
-        ROW_NUMBER() OVER (ORDER BY [v1_end_date] DESC) AS RowNum
-      FROM [replus_treceability].[dbo].[clw_station_status]
-      WHERE [RFID] = '${RFID}'
-    )
-    SELECT [module_barcode], [v1_end_date]
-    FROM RankedRecords
-    WHERE RowNum <= 2
-    ORDER BY [v1_end_date] DESC;
-  `);
+      Double_module_barcode = await request.query(`
+          WITH RankedRecords AS (
+            SELECT [module_barcode], [v1_end_date],
+              ROW_NUMBER() OVER (ORDER BY [v1_end_date] DESC) AS RowNum
+            FROM [replus_treceability].[dbo].[clw_station_status]
+            WHERE [RFID] = '${RFID}'
+          )
+          SELECT [module_barcode], [v1_end_date]
+          FROM RankedRecords
+          WHERE RowNum <= 2
+          ORDER BY [v1_end_date] DESC;
+        `);
 
       if (Double_module_barcode.recordset.length >= 2) {
         module_barcode1 = Double_module_barcode.recordset[0].module_barcode;
@@ -1044,11 +1044,11 @@ async function processVision2(tags, socket) {
 
     } else {
       const MODULE_BARCODE_CLW = await request.query(`
-    SELECT TOP 1 module_barcode 
-    FROM [replus_treceability].[dbo].[clw_station_status] 
-    WHERE RFID = '${RFID}' 
-    ORDER BY sr_no DESC
-  `);
+          SELECT TOP 1 module_barcode 
+          FROM [replus_treceability].[dbo].[clw_station_status] 
+          WHERE RFID = '${RFID}' 
+          ORDER BY sr_no DESC
+        `);
 
       if (MODULE_BARCODE_CLW.recordset.length > 0) {
         const fullBarcode = MODULE_BARCODE_CLW.recordset[0].module_barcode;
@@ -1285,16 +1285,50 @@ async function processWelding(tags, socket) {
 
 
     if (moduleType == 2) {
-      Double_module_barcode = await request.query(`WITH RankedRecords AS (SELECT [module_barcode], [v1_end_date], ROW_NUMBER() OVER (PARTITION BY [v1_end_date] ORDER BY [v1_end_date] DESC) AS RowNum FROM [replus_treceability].[dbo].[clw_station_status] WHERE [RFID] = '${RFID}') SELECT [module_barcode], [v1_end_date] FROM RankedRecords WHERE RowNum <= 2 ORDER BY [v1_end_date] DESC;`);
-      console.log("Double1233333 ", Double_module_barcode.recordset[0].module_barcode);
-      module_barcode1 = Double_module_barcode.recordset[0].module_barcode;
+      Double_module_barcode = await request.query(`
+          WITH RankedRecords AS (
+            SELECT [module_barcode], [v1_end_date],
+              ROW_NUMBER() OVER (ORDER BY [v1_end_date] DESC) AS RowNum
+            FROM [replus_treceability].[dbo].[clw_station_status]
+            WHERE [RFID] = '${RFID}'
+          )
+          SELECT [module_barcode], [v1_end_date]
+          FROM RankedRecords
+          WHERE RowNum <= 2
+          ORDER BY [v1_end_date] DESC;
+        `);
 
-      console.log(Double_module_barcode.recordset[1].module_barcode);
-      module_barcode2 = Double_module_barcode.recordset[1].module_barcode;
+      if (Double_module_barcode.recordset.length >= 2) {
+        module_barcode1 = Double_module_barcode.recordset[0].module_barcode;
+        module_barcode2 = Double_module_barcode.recordset[1].module_barcode;
+      } else if (Double_module_barcode.recordset.length === 1) {
+        module_barcode1 = Double_module_barcode.recordset[0].module_barcode;
+        module_barcode2 = Double_module_barcode.recordset[0].module_barcode;
+      } else {
+        console.log("No records found in Double_module_barcode.");
+        module_barcode1 = "null";
+        module_barcode2 = "null";
+      }
+
     } else {
-      MODULE_BARCODE_CLW = await request.query(`SELECT TOP 1 module_barcode FROM [replus_treceability].[dbo].[clw_station_status] WHERE RFID = '${RFID}' ORDER BY sr_no DESC`);
-      Module_Code1 = MODULE_BARCODE_CLW.recordset[0].module_barcode && MODULE_BARCODE_CLW.recordset[0].module_barcode.split('_')[0];
-      console.log("Module_Code1", Module_Code1);
+      const MODULE_BARCODE_CLW = await request.query(`
+          SELECT TOP 1 module_barcode 
+          FROM [replus_treceability].[dbo].[clw_station_status] 
+          WHERE RFID = '${RFID}' 
+          ORDER BY sr_no DESC
+        `);
+
+      if (MODULE_BARCODE_CLW.recordset.length > 0) {
+        const fullBarcode = MODULE_BARCODE_CLW.recordset[0].module_barcode;
+        module_barcode1 = fullBarcode;
+        module_barcode2 = fullBarcode;
+        Module_Code1 = fullBarcode.split('_')[0];
+        console.log("Module_Code1", Module_Code1);
+      } else {
+        console.log("No records found in MODULE_BARCODE_CLW.");
+        module_barcode1 = "null";
+        module_barcode2 = "null";
+      }
     }
     console.log("Double_module_barcode", Double_module_barcode);
     const Double_barcode = `${module_barcode1} ,${module_barcode2}`
