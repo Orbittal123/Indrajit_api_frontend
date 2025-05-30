@@ -173,7 +173,7 @@ app.post("/checkBarcode", async (req, res) => {
       console.log("cellSortingCountResult",cellSortingCountResult);
       console.log("cellSortingCount",cellSortingCount);
       
-      if (cellSortingCount === moduleCount) {
+      if (cellSortingCount == moduleCount) {
         res.status(200).json({
           message: "Module complete in cell sorting.",
           moduleCode,
