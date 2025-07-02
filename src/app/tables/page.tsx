@@ -90,12 +90,17 @@ const TablesPage = () => {
       });
     }
 
-    if (searchQuery) {
-      filtered = filtered.filter(item =>
-        item.module_barcode.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+    // if (searchQuery) {
+    //   filtered = filtered.filter(item =>
+    //     item.module_barcode.toLowerCase().includes(searchQuery.toLowerCase())
+    //   );
+    // }
 
+     if (searchQuery) {
+  filtered = filtered.filter(item =>
+    item.module_barcode?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+}
     setFilteredData(filtered);
     setCurrentPage(1); // Reset current page to 1 after search
     console.log("Filtered data:", filtered); // Log the filtered data
