@@ -547,7 +547,7 @@ const [filteredData, setFilteredData] = useState<PackageItem[]>([]);
 
     if (searchQuery) {
       filtered = filtered.filter(item =>
-        item.module_barcode.toLowerCase().includes(searchQuery.toLowerCase())
+        item.module_barcode?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
