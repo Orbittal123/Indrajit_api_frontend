@@ -15,7 +15,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 const TablesPage = () => {
   return (
     <DefaultLayout>
-      <Breadcrumb pageName="Line 2" />
+      <Breadcrumb pageName="Line 5" />
 
       <div className="flex flex-col gap-10">
         {/* <TableOne />
