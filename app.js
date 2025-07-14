@@ -54,9 +54,23 @@ var lastProcessedRFID = null;
 let processedRFIDs = [];
 let moduleType = 2;
 
+
+
 // Create a server to listen on port 7080
 const server = net.createServer(async (socket) => {
   console.log('Client connected....');
+
+  const result = await mainPool.request().query(`
+    SELECT sr_no, no_of_modules, date_time 
+    FROM dbo.vision_pack_module_count
+    WHERE sr_no = 1
+  `);
+  if (result.recordset.length === 0) {
+    return res.status(404).json({ message: 'Record with sr_no = 1 not found' });
+  }
+  const record = result.recordset[0];
+  moduleType = record.no_of_modules;
+
 
 
   socket.on('data', async (data) => {
