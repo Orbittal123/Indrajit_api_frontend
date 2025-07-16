@@ -53,64 +53,72 @@ const ModuleTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to delete this module?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-      buttonsStyling: false,
-      didOpen: () => {
-        const confirmBtn = Swal.getConfirmButton();
-        const cancelBtn = Swal.getCancelButton();
+  const confirm = await Swal.fire({
+    title: "Are you sure?",
+    text: "Do you want to delete this module?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+    buttonsStyling: false,
+    didOpen: () => {
+      const confirmBtn = Swal.getConfirmButton();
+      const cancelBtn = Swal.getCancelButton();
 
-        confirmBtn.style.backgroundColor = "#dc2626";
-        confirmBtn.style.color = "#fff";
-        confirmBtn.style.padding = "0.5rem 1rem";
-        confirmBtn.style.borderRadius = "0.375rem";
-        confirmBtn.style.fontWeight = "600";
+      confirmBtn.style.backgroundColor = "#dc2626";
+      confirmBtn.style.color = "#fff";
+      confirmBtn.style.padding = "0.5rem 1rem";
+      confirmBtn.style.borderRadius = "0.375rem";
+      confirmBtn.style.fontWeight = "600";
 
-        cancelBtn.style.backgroundColor = "#e5e7eb";
-        cancelBtn.style.color = "#1f2937";
-        cancelBtn.style.padding = "0.5rem 1rem";
-        cancelBtn.style.borderRadius = "0.375rem";
-        cancelBtn.style.fontWeight = "600";
-        cancelBtn.style.marginLeft = "0.5rem";
-      }
-    });
-
-
-
-
-    if (confirm.isConfirmed) {
-      try {
-        await axios.delete(`${apiBase}/${id}`);
-        Swal.fire({
-          title: "Deleted!",
-          text: "Module deleted successfully.",
-          icon: "success",
-          confirmButtonText: "OK",
-          customClass: {
-            confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
-          },
-          buttonsStyling: false
-        });
-        fetchData();
-      } catch {
-        Swal.fire({
-          title: "Error!",
-          text: "Failed to delete module",
-          icon: "error",
-          confirmButtonText: "OK",
-          customClass: {
-            confirmButton: 'bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700',
-          },
-          buttonsStyling: false
-        });
-      }
+      cancelBtn.style.backgroundColor = "#e5e7eb";
+      cancelBtn.style.color = "#1f2937";
+      cancelBtn.style.padding = "0.5rem 1rem";
+      cancelBtn.style.borderRadius = "0.375rem";
+      cancelBtn.style.fontWeight = "600";
+      cancelBtn.style.marginLeft = "0.5rem";
     }
-  };
+  });
+
+  if (confirm.isConfirmed) {
+    try {
+      await axios.delete(`${apiBase}/${id}`);
+      await Swal.fire({
+        title: "Deleted!",
+        text: "Module deleted successfully.",
+        icon: "success",
+        confirmButtonText: "OK",
+        buttonsStyling: false,
+        didOpen: () => {
+          const confirmBtn = Swal.getConfirmButton();
+          confirmBtn.style.backgroundColor = "#16a34a";
+          confirmBtn.style.color = "#fff";
+          confirmBtn.style.padding = "0.5rem 1rem";
+          confirmBtn.style.borderRadius = "0.375rem";
+          confirmBtn.style.fontWeight = "600";
+        }
+      });
+      fetchData();
+    } catch {
+      await Swal.fire({
+        title: "Error!",
+        text: "Failed to delete module",
+        icon: "error",
+        confirmButtonText: "OK",
+        buttonsStyling: false,
+        didOpen: () => {
+          const confirmBtn = Swal.getConfirmButton();
+          confirmBtn.style.backgroundColor = "#dc2626";
+          confirmBtn.style.color = "#fff";
+          confirmBtn.style.padding = "0.5rem 1rem";
+          confirmBtn.style.borderRadius = "0.375rem";
+          confirmBtn.style.fontWeight = "600";
+        }
+      });
+    }
+  }
+};
+
 
   const openModal = (item = { sr_no: null, module_code: "", cell_count: "" }) => {
     setModalData({
