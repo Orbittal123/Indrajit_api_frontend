@@ -175,6 +175,7 @@ const ModuleTable = () => {
       });
 
       fetchData();
+      location.reload(); // Reload to apply changes
     } catch (err) {
       console.error("Dropdown error:", err?.response?.data || err.message);
       showSwal({
