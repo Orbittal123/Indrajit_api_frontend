@@ -70,7 +70,7 @@ const server = net.createServer(async (socket) => {
   }
   const record = result.recordset[0];
   moduleType = record.no_of_modules;
-
+  console.log("Module Type:", moduleType);
 
 
   socket.on('data', async (data) => {
