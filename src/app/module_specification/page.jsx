@@ -46,22 +46,32 @@ const ModuleTable = () => {
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel",
       customClass: {
-        confirmButton: 'bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700',
-        cancelButton: 'bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 ml-2',
+        confirmButton: 'bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700',
+        cancelButton: 'bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded hover:bg-gray-400 ml-2',
       },
-      buttonsStyling: false,
+      buttonsStyling: false
     });
 
     if (confirm.isConfirmed) {
       try {
         await axios.delete(`${apiBase}/${id}`);
-        Swal.fire("Deleted!", "Module deleted successfully.", "success");
+        Swal.fire({
+          title: "Deleted!",
+          text: "Module deleted successfully.",
+          icon: "success",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
+          },
+          buttonsStyling: false
+        });
         fetchData();
       } catch {
         Swal.fire("Error!", "Failed to delete module", "error");
       }
     }
   };
+
 
   const openModal = (item = { sr_no: null, module_code: "", cell_count: "" }) => {
     setModalData({
@@ -102,6 +112,7 @@ const ModuleTable = () => {
     }
   };
 
+
   const selectModule = async (e) => {
     const selectedValue = e.target.value;
     if (!selectedValue) return;
@@ -134,7 +145,7 @@ const ModuleTable = () => {
 
   return (
     <>
-      <Header1 sidebarOpen={undefined} setSidebarOpen={() => {}} />
+      <Header1 sidebarOpen={undefined} setSidebarOpen={() => { }} />
       <div className="p-6 max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">Module Specifications</h2>
