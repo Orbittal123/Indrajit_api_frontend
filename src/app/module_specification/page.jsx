@@ -10,7 +10,7 @@ const apiBase = "http://10.5.0.20:5501/api/module-specifications";
 // http://10.5.0.20:5501/api/api/CountAll
 const ModuleTable = () => {
   const [modules, setModules] = useState([]);
-  const [modalData, setModalData] = useState({ id: null, module_type: "", cell_count: "" });
+  const [modalData, setModalData] = useState({ id: null, module_code: "", cell_count: "" });
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [noOfModules, setNoOfModules] = useState("")
@@ -18,6 +18,7 @@ const ModuleTable = () => {
   const fetchData = async () => {
     try {
       const res = await axios.get(apiBase);
+      console.log("get_data",res.data);
       setModules(res.data);
     } catch {
       Swal.fire({
@@ -85,7 +86,7 @@ const ModuleTable = () => {
     }
   };
 
-  const openModal = (item = { id: null, module_type: "", cell_count: "" }) => {
+  const openModal = (item = { id: null, module_code: "", cell_count: "" }) => {
     setModalData(item);
     setIsEditing(!!item.id);
     setShowModal(true);
@@ -93,11 +94,11 @@ const ModuleTable = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    setModalData({ id: null, module_type: "", cell_count: "" });
+    setModalData({ id: null, module_code: "", cell_count: "" });
   };
 
   const saveData = async () => {
-    if (!modalData.module_type || !modalData.cell_count) {
+    if (!modalData.module_code || !modalData.cell_count) {
       return Swal.fire({
         title: "Validation",
         text: "All fields are required",
@@ -273,7 +274,7 @@ const ModuleTable = () => {
             <tbody>
               {modules.map((mod) => (
                 <tr key={mod.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-3">{mod.module_type}</td>
+                  <td className="px-6 py-3">{mod.module_code}</td>
                   <td className="px-6 py-3">{mod.cell_count}</td>
                   <td className="px-6 py-3 flex gap-2">
                     <button
@@ -309,8 +310,8 @@ const ModuleTable = () => {
                 type="text"
                 className="w-full mb-3 p-2 border rounded"
                 placeholder="Module Type"
-                value={modalData.module_type}
-                onChange={(e) => setModalData({ ...modalData, module_type: e.target.value })}
+                value={modalData.module_code}
+                onChange={(e) => setModalData({ ...modalData, module_code: e.target.value })}
               />
               <input
                 type="number"
