@@ -115,18 +115,37 @@ const ModuleTable = () => {
 
   const selectModule = async (e) => {
     const selectedValue = e.target.value;
+
     if (!selectedValue) return;
 
     try {
-      await axios.put("http://10.5.0.20:5501/api/update-module-count", {
-        no_of_modules: selectedValue,
+      const res = await axios.put("http://10.5.0.20:5501/api/update-module-count", {
+        no_of_modules: parseInt(selectedValue),
       });
-      Swal.fire("Updated!", `Module count updated to ${selectedValue}`, "success");
+
+      Swal.fire({
+        title: "Updated!",
+        text: res.data?.message || `Module count updated to ${selectedValue}`,
+        icon: "success",
+        confirmButtonText: "OK",
+        customClass: {
+          confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
+        },
+        buttonsStyling: false,
+      });
+
       fetchData();
-    } catch {
-      Swal.fire("Error!", "Failed to update module count", "error");
+    } catch (err) {
+      console.error("Dropdown error:", err?.response?.data || err.message);
+      Swal.fire({
+        title: "Error!",
+        text: err?.response?.data?.message || "Failed to update module count",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
+
 
   const fetchModuleCount = async () => {
     try {
