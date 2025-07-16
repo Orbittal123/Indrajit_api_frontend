@@ -15,21 +15,25 @@ const ModuleTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [noOfModules, setNoOfModules] = useState("");
 
+  const showSwal = (title, text, icon, colorClass = "bg-blue-600") => {
+    Swal.fire({
+      title,
+      text,
+      icon,
+      confirmButtonText: "OK",
+      customClass: {
+        confirmButton: `${colorClass} text-white font-semibold px-4 py-2 rounded hover:opacity-90`,
+      },
+      buttonsStyling: false,
+    });
+  };
+
   const fetchData = async () => {
     try {
       const res = await axios.get(apiBase);
       setModules(res.data);
     } catch {
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to fetch modules",
-        icon: "error",
-        confirmButtonText: "OK",
-        customClass: {
-          confirmButton: 'bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800',
-        },
-        buttonsStyling: false,
-      });
+      showSwal("Error!", "Failed to fetch modules", "error", "bg-red-600");
     }
   };
 
@@ -55,23 +59,13 @@ const ModuleTable = () => {
     if (confirm.isConfirmed) {
       try {
         await axios.delete(`${apiBase}/${id}`);
-        Swal.fire({
-          title: "Deleted!",
-          text: "Module deleted successfully.",
-          icon: "success",
-          confirmButtonText: "OK",
-          customClass: {
-            confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
-          },
-          buttonsStyling: false
-        });
+        showSwal("Deleted!", "Module deleted successfully.", "success", "bg-green-600");
         fetchData();
       } catch {
-        Swal.fire("Error!", "Failed to delete module", "error");
+        showSwal("Error!", "Failed to delete module", "error", "bg-red-600");
       }
     }
   };
-
 
   const openModal = (item = { sr_no: null, module_code: "", cell_count: "" }) => {
     setModalData({
@@ -92,30 +86,28 @@ const ModuleTable = () => {
     const { module_code, cell_count, id } = modalData;
 
     if (!module_code || !cell_count || isNaN(cell_count)) {
-      return Swal.fire("Validation", "All fields are required and valid", "warning");
+      return showSwal("Validation", "All fields are required and valid", "warning", "bg-yellow-600");
     }
 
     try {
       if (isEditing) {
         await axios.put(`${apiBase}/${id}`, { module_code, cell_count });
-        Swal.fire("Updated!", "Module updated successfully", "success");
+        showSwal("Updated!", "Module updated successfully", "success", "bg-green-600");
       } else {
         await axios.post(apiBase, { module_code, cell_count });
-        Swal.fire("Saved!", "Module added successfully", "success");
+        showSwal("Saved!", "Module added successfully", "success", "bg-green-600");
       }
 
       closeModal();
       fetchData();
     } catch (err) {
       const msg = err.response?.data?.error || "Something went wrong";
-      Swal.fire("Error!", msg, "error");
+      showSwal("Error!", msg, "error", "bg-red-600");
     }
   };
 
-
   const selectModule = async (e) => {
     const selectedValue = e.target.value;
-
     if (!selectedValue) return;
 
     try {
@@ -123,29 +115,13 @@ const ModuleTable = () => {
         no_of_modules: parseInt(selectedValue),
       });
 
-      Swal.fire({
-        title: "Updated!",
-        text: res.data?.message || `Module count updated to ${selectedValue}`,
-        icon: "success",
-        confirmButtonText: "OK",
-        customClass: {
-          confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
-        },
-        buttonsStyling: false,
-      });
-
+      showSwal("Updated!", res.data?.message || `Module count updated to ${selectedValue}`, "success", "bg-green-600");
       fetchData();
     } catch (err) {
       console.error("Dropdown error:", err?.response?.data || err.message);
-      Swal.fire({
-        title: "Error!",
-        text: err?.response?.data?.message || "Failed to update module count",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showSwal("Error!", err?.response?.data?.message || "Failed to update module count", "error", "bg-red-600");
     }
   };
-
 
   const fetchModuleCount = async () => {
     try {
@@ -154,7 +130,7 @@ const ModuleTable = () => {
         setNoOfModules(res.data.no_of_modules.toString());
       }
     } catch {
-      Swal.fire("Error!", "Failed to fetch module count", "error");
+      showSwal("Error!", "Failed to fetch module count", "error", "bg-red-600");
     }
   };
 
@@ -164,7 +140,7 @@ const ModuleTable = () => {
 
   return (
     <>
-      <Header1 sidebarOpen={undefined} setSidebarOpen={() => { }} />
+      <Header1 sidebarOpen={undefined} setSidebarOpen={() => {}} />
       <div className="p-6 max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">Module Specifications</h2>
