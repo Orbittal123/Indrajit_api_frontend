@@ -53,26 +53,34 @@ const ModuleTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    Swal.fire({
       title: "Are you sure?",
       text: "Do you want to delete this module?",
       icon: "warning",
       showCancelButton: true,
-      html: `
-    <div class="flex justify-center gap-4">
-      <button id="swal-confirm" class="bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700">Yes, delete it!</button>
-      <button id="swal-cancel" class="bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
-    </div>
-  `,
-      showConfirmButton: false,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
       didOpen: () => {
-        const confirmBtn = document.getElementById("swal-confirm");
-        const cancelBtn = document.getElementById("swal-cancel");
+        const confirmBtn = Swal.getConfirmButton();
+        const cancelBtn = Swal.getCancelButton();
 
-        confirmBtn.addEventListener("click", () => Swal.clickConfirm());
-        cancelBtn.addEventListener("click", () => Swal.close());
+        confirmBtn.style.backgroundColor = "#dc2626";
+        confirmBtn.style.color = "#fff";
+        confirmBtn.style.padding = "0.5rem 1rem";
+        confirmBtn.style.borderRadius = "0.375rem";
+        confirmBtn.style.fontWeight = "600";
+
+        cancelBtn.style.backgroundColor = "#e5e7eb";
+        cancelBtn.style.color = "#1f2937";
+        cancelBtn.style.padding = "0.5rem 1rem";
+        cancelBtn.style.borderRadius = "0.375rem";
+        cancelBtn.style.fontWeight = "600";
+        cancelBtn.style.marginLeft = "0.5rem";
       }
     });
+
+
 
 
     if (confirm.isConfirmed) {
