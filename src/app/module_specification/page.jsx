@@ -6,8 +6,8 @@ import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Header1 from "@/components/Header";
 
-const apiBase = "http://10.5.0.20:5501/module-specifications";
-
+const apiBase = "http://10.5.0.20:5501/api/module-specifications";
+// http://10.5.0.20:5501/api/api/CountAll
 const ModuleTable = () => {
   const [modules, setModules] = useState([]);
   const [modalData, setModalData] = useState({ id: null, module_type: "", cell_count: "" });
