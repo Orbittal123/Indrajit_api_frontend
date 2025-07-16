@@ -8,6 +8,30 @@ import Header1 from "@/components/Header";
 
 const apiBase = "http://10.5.0.20:5501/api/module-specifications";
 
+// ✅ SweetAlert helper with consistent button styling
+const showSwal = ({
+  title = "",
+  text = "",
+  icon = "info",
+  confirmText = "OK",
+  cancelText,
+  showCancel = false,
+}) => {
+  return Swal.fire({
+    title,
+    text,
+    icon,
+    showCancelButton: showCancel,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    customClass: {
+      confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
+      cancelButton: 'bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded hover:bg-gray-400 ml-2',
+    },
+    buttonsStyling: false,
+  });
+};
+
 const ModuleTable = () => {
   const [modules, setModules] = useState([]);
   const [modalData, setModalData] = useState({ id: null, module_code: "", cell_count: "" });
@@ -15,25 +39,12 @@ const ModuleTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [noOfModules, setNoOfModules] = useState("");
 
-  const showSwal = (title, text, icon, colorClass = "bg-blue-600") => {
-    Swal.fire({
-      title,
-      text,
-      icon,
-      confirmButtonText: "OK",
-      customClass: {
-        confirmButton: `${colorClass} text-white font-semibold px-4 py-2 rounded hover:opacity-90`,
-      },
-      buttonsStyling: false,
-    });
-  };
-
   const fetchData = async () => {
     try {
       const res = await axios.get(apiBase);
       setModules(res.data);
     } catch {
-      showSwal("Error!", "Failed to fetch modules", "error", "bg-red-600");
+      showSwal({ title: "Error!", text: "Failed to fetch modules", icon: "error" });
     }
   };
 
@@ -59,10 +70,28 @@ const ModuleTable = () => {
     if (confirm.isConfirmed) {
       try {
         await axios.delete(`${apiBase}/${id}`);
-        showSwal("Deleted!", "Module deleted successfully.", "success", "bg-green-600");
+        Swal.fire({
+          title: "Deleted!",
+          text: "Module deleted successfully.",
+          icon: "success",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'bg-green-600 text-white font-semibold px-4 py-2 rounded hover:bg-green-700',
+          },
+          buttonsStyling: false
+        });
         fetchData();
       } catch {
-        showSwal("Error!", "Failed to delete module", "error", "bg-red-600");
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to delete module",
+          icon: "error",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700',
+          },
+          buttonsStyling: false
+        });
       }
     }
   };
@@ -86,23 +115,23 @@ const ModuleTable = () => {
     const { module_code, cell_count, id } = modalData;
 
     if (!module_code || !cell_count || isNaN(cell_count)) {
-      return showSwal("Validation", "All fields are required and valid", "warning", "bg-yellow-600");
+      return showSwal({ title: "Validation", text: "All fields are required and valid", icon: "warning" });
     }
 
     try {
       if (isEditing) {
         await axios.put(`${apiBase}/${id}`, { module_code, cell_count });
-        showSwal("Updated!", "Module updated successfully", "success", "bg-green-600");
+        showSwal({ title: "Updated!", text: "Module updated successfully", icon: "success" });
       } else {
         await axios.post(apiBase, { module_code, cell_count });
-        showSwal("Saved!", "Module added successfully", "success", "bg-green-600");
+        showSwal({ title: "Saved!", text: "Module added successfully", icon: "success" });
       }
 
       closeModal();
       fetchData();
     } catch (err) {
       const msg = err.response?.data?.error || "Something went wrong";
-      showSwal("Error!", msg, "error", "bg-red-600");
+      showSwal({ title: "Error!", text: msg, icon: "error" });
     }
   };
 
@@ -115,11 +144,20 @@ const ModuleTable = () => {
         no_of_modules: parseInt(selectedValue),
       });
 
-      showSwal("Updated!", res.data?.message || `Module count updated to ${selectedValue}`, "success", "bg-green-600");
+      showSwal({
+        title: "Updated!",
+        text: res.data?.message || `Module count updated to ${selectedValue}`,
+        icon: "success",
+      });
+
       fetchData();
     } catch (err) {
       console.error("Dropdown error:", err?.response?.data || err.message);
-      showSwal("Error!", err?.response?.data?.message || "Failed to update module count", "error", "bg-red-600");
+      showSwal({
+        title: "Error!",
+        text: err?.response?.data?.message || "Failed to update module count",
+        icon: "error",
+      });
     }
   };
 
@@ -130,7 +168,7 @@ const ModuleTable = () => {
         setNoOfModules(res.data.no_of_modules.toString());
       }
     } catch {
-      showSwal("Error!", "Failed to fetch module count", "error", "bg-red-600");
+      showSwal({ title: "Error!", text: "Failed to fetch module count", icon: "error" });
     }
   };
 
@@ -140,7 +178,7 @@ const ModuleTable = () => {
 
   return (
     <>
-      <Header1 sidebarOpen={undefined} setSidebarOpen={() => {}} />
+      <Header1 sidebarOpen={undefined} setSidebarOpen={() => { }} />
       <div className="p-6 max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">Module Specifications</h2>
