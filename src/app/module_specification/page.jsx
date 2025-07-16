@@ -6,7 +6,7 @@ import axios from "axios";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Header1 from "@/components/Header";
 
-const apiBase = "http://10.5.0.20/module-specifications";
+const apiBase = "http://10.5.0.20:5501/module-specifications";
 
 const ModuleTable = () => {
   const [modules, setModules] = useState([]);
@@ -163,7 +163,7 @@ const ModuleTable = () => {
     if (!selectedValue) return;
 
     try {
-      await axios.put("http://10.5.0.20:3000/api/update-module-count", {
+      await axios.put("http://10.5.0.20:5501/api/update-module-count", {
         no_of_modules: selectedValue,
       });
       Swal.fire({
@@ -200,7 +200,7 @@ const ModuleTable = () => {
   // Fetch current no_of_modules on mount
   const fetchModuleCount = async () => {
     try {
-      const res = await axios.get("http://10.5.0.20:3000/api/get-module-count");
+      const res = await axios.get("http://10.5.0.20:5501/api/get-module-count");
       if (res.data && res.data.no_of_modules) {
         setNoOfModules(res.data.no_of_modules.toString()); // make sure it's string for select value
       }
