@@ -58,14 +58,22 @@ const ModuleTable = () => {
       text: "Do you want to delete this module?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-      customClass: {
-        confirmButton: 'bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700',
-        cancelButton: 'bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded hover:bg-gray-400 ml-2',
-      },
-      buttonsStyling: false
+      html: `
+    <div class="flex justify-center gap-4">
+      <button id="swal-confirm" class="bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700">Yes, delete it!</button>
+      <button id="swal-cancel" class="bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+    </div>
+  `,
+      showConfirmButton: false,
+      didOpen: () => {
+        const confirmBtn = document.getElementById("swal-confirm");
+        const cancelBtn = document.getElementById("swal-cancel");
+
+        confirmBtn.addEventListener("click", () => Swal.clickConfirm());
+        cancelBtn.addEventListener("click", () => Swal.close());
+      }
     });
+
 
     if (confirm.isConfirmed) {
       try {
