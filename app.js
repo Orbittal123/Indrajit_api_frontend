@@ -79,10 +79,10 @@ const server = net.createServer(async (socket) => {
     try {
       const receivedData = data.toString().trim();  // Convert buffer to string and trim whitespace
       const jsonStrings = receivedData.split(/(?<=\})\s*(?=\{)/);  // Split concatenated JSON strings
-
+      console.log("jsonStrings", jsonStrings);
       for (const jsonString of jsonStrings) {
         let barcode = null;
-
+        console.log("jsonString", jsonString);
         // Check if the received string is RFID data (starts with '{')
         if (jsonString.startsWith('{')) {
           // Handle RFID tags
@@ -1751,3 +1751,4 @@ async function processFpcb(tags, socket) {
 server.listen(7080, () => {
   console.log('Server listening on port 7080');
 });
+
