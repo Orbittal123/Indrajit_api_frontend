@@ -163,23 +163,42 @@ app.post("/checkBarcode", async (req, res) => {
     console.log("moduleCount",moduleCount);
    
     if (moduleCount > 0) {
-      const cellSortingCountQuery = `
-        SELECT COUNT(*) AS count FROM cell_sorting_backup
-        WHERE ModuleCode = '${scannedBarcode}'`;
-      const cellSortingCountResult = await queryMainDatabase(cellSortingCountQuery);
-      const cellSortingCount = cellSortingCountResult.recordset[0].count;
+      const deleteDuplicateTraceabilityQuery = `
+WITH DuplicateRows AS (
+    SELECT 
+        TraceabilityCode,
+        ROW_NUMBER() OVER (PARTITION BY TraceabilityCode ORDER BY InwardScanTime ASC) AS row_num
+    FROM cell_sorting_backup
+    WHERE ModuleCode = '${scannedBarcode}'
+)
+DELETE FROM cell_sorting_backup
+WHERE TraceabilityCode IN (
+    SELECT TraceabilityCode 
+    FROM DuplicateRows 
+    WHERE row_num > 1
+)
+AND ModuleCode = '${scannedBarcode}';
+`;
 
-      console.log("cellSortingCountQuery",cellSortingCountQuery);
-      console.log("cellSortingCountResult",cellSortingCountResult);
-      console.log("cellSortingCount",cellSortingCount);
-      
-      if (cellSortingCount == Number(moduleCount)) {
-        res.status(200).json({
-          message: "Module complete in cell sorting.",
-          moduleCode,
-          count: moduleCount,
-        });
-      } else {
+await queryMainDatabase(deleteDuplicateTraceabilityQuery);
+
+const cellSortingCountQuery = `
+    SELECT COUNT(*) AS count FROM cell_sorting_backup
+    WHERE ModuleCode = '${scannedBarcode}'`;
+const cellSortingCountResult = await queryMainDatabase(cellSortingCountQuery);
+const cellSortingCount = cellSortingCountResult.recordset[0].count;
+
+console.log("cellSortingCountQuery", cellSortingCountQuery);
+console.log("cellSortingCountResult", cellSortingCountResult);
+console.log("cellSortingCount", cellSortingCount);
+
+if (cellSortingCount == Number(moduleCount)) {
+  res.status(200).json({
+    message: "Module complete in cell sorting.",
+    moduleCode: scannedBarcode,
+    count: moduleCount,
+  });
+} else {
         res.status(400).json({
           message: "Module not complete in cell sorting.",
           moduleCode,
@@ -296,3 +315,4 @@ app.listen(PORT, () => {
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);
 // });
+
