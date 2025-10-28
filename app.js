@@ -83,7 +83,7 @@ const server = net.createServer(async (socket) => {
 
       try {
 
-        const receivedData = data.toString().trim();  // Convert buffer to string and trim whitespace
+        // const receivedData = data.toString().trim();  // Convert buffer to string and trim whitespace
         const jsonStrings = receivedData.split(/(?<=\})\s*(?=\{)/);  // Split concatenated JSON strings
         console.log("jsonStrings", jsonStrings);
 
@@ -1756,5 +1756,6 @@ async function processFpcb(tags, socket) {
 server.listen(7080, () => {
   console.log('Server listening on port 7080');
 });
+
 
 
