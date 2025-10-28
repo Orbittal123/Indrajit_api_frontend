@@ -194,7 +194,7 @@ const server = net.createServer(async (socket) => {
 
               console.log("ModuleCount", moduleCount);
 
-              if (module_code == "24S01P") {
+              if (moduleType === 2) {
                 // Process multiple modules
                 await multiplemodule(barcode, socket);
 
