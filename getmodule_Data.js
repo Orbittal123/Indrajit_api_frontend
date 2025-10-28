@@ -163,25 +163,6 @@ app.post("/checkBarcode", async (req, res) => {
     console.log("moduleCount",moduleCount);
    
     if (moduleCount > 0) {
-      const deleteDuplicateTraceabilityQuery = `
-WITH DuplicateRows AS (
-    SELECT 
-        TraceabilityCode,
-        ROW_NUMBER() OVER (PARTITION BY TraceabilityCode ORDER BY InwardScanTime ASC) AS row_num
-    FROM cell_sorting_backup
-    WHERE ModuleCode = '${scannedBarcode}'
-)
-DELETE FROM cell_sorting_backup
-WHERE TraceabilityCode IN (
-    SELECT TraceabilityCode 
-    FROM DuplicateRows 
-    WHERE row_num > 1
-)
-AND ModuleCode = '${scannedBarcode}';
-`;
-
-await queryMainDatabase(deleteDuplicateTraceabilityQuery);
-
 const cellSortingCountQuery = `
     SELECT COUNT(*) AS count FROM cell_sorting_backup
     WHERE ModuleCode = '${scannedBarcode}'`;
@@ -315,4 +296,5 @@ app.listen(PORT, () => {
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);
 // });
+
 
