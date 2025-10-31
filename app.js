@@ -69,7 +69,8 @@ const server = net.createServer(async (socket) => {
     return res.status(404).json({ message: 'Record with sr_no = 1 not found' });
   }
   const record = result.recordset[0];
-  moduleType = record.no_of_modules;
+  // moduleType = record.no_of_modules;
+  moduleType = parseInt(record.no_of_modules, 10);
   console.log("Module Type:", moduleType);
 
 
@@ -191,9 +192,8 @@ const server = net.createServer(async (socket) => {
 
               // Convert module count to integer
               const moduleCount = parseInt(result.recordset[0].no_of_modules, 10);
-
               console.log("ModuleCount", moduleCount);
-
+              console.log("moduleType", moduleType);
               if (moduleType === 2) {
                 // Process multiple modules
                 await multiplemodule(barcode, socket);
