@@ -191,7 +191,7 @@ const ECommerce: React.FC = () => {
         throw new Error("Function not implemented.");
       }} />
 
-      <Card className="p-5">
+      {/* <Card className="p-5">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
           <CardDataStats total={`Shift  ${currentShift}`}>
             <svg className="fill-success dark:fill-white" width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -215,7 +215,7 @@ const ECommerce: React.FC = () => {
             </svg>
           </CardDataStats>
         </div>
-      </Card>
+      </Card> */}
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-0 xl:grid-cols-4 2xl:gap-7.5">
         <Card className="m-4">
