@@ -305,15 +305,20 @@ async function multiplemodule(barcode, socket) {
     scannedBarcode1 = barcode;
     console.log('1st module barcode scanned successfully:', scannedBarcode1);
     // Send a message to frontend, 2nd module barcode successfully scanned
-    broadcast({ message: '1st Module Barcode Scanned Successfully!', barcode });
+    // broadcast({ message: '1st Module Barcode Scanned Successfully! and Module complete in cell sorting!', barcode });
+    broadcast({
+      message: '1st Module Barcode Scanned Successfully! \nModule complete in cell sorting!',
+      barcode
+    });
 
   } else if (!scannedBarcode2 && barcode !== scannedBarcode1) {
     scannedBarcode2 = barcode;
     console.log('2nd module barcode scanned successfully:', scannedBarcode2);
 
     // Send a message to frontend, 2nd module barcode successfully scanned
-    broadcast({ message: '2nd Module Barcode Scanned Successfully!', barcode });
-
+    broadcast({ message: '2nd Module Barcode Scanned Successfully! \nModule complete in cell sorting!',
+                barcode 
+              });
     // wait for tags to proceed
     if (tags) {
       await processRFIDTags(tags, socket);
@@ -1159,7 +1164,6 @@ async function processVision2(tags, socket) {
               broadcast({ message: `${scannedBarcode1} : Ok  ${scannedBarcode2} : Ok ` });
 
             } else {
-
               if (ModuleStatus == 42) {
 
                 const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET v2_status = 'OK', v2_error = 'null', v2_end_date = '${today_date}' WHERE module_barcode = '${module_barcode1}'`;
