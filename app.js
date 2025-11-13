@@ -1,4 +1,3 @@
-
 const net = require('net');
 const sql = require('mssql');
 const axios = require('axios');
@@ -53,7 +52,8 @@ var previousTags = null;
 var lastProcessedRFID = null;
 let processedRFIDs = [];
 let moduleType = 2;
-
+let lastBarcode = null;
+let lastTimestamp = 0;
 
 
 // Create a server to listen on port 7080
@@ -169,7 +169,13 @@ const server = net.createServer(async (socket) => {
           // Handle barcode input (string format)
           barcode = jsonString;
           console.log('Received barcode:', barcode);
-
+          // ✅ Duplicate barcode check (correct placement)
+          if (barcode === lastBarcode && Date.now() - lastTimestamp < 5000) {
+            console.log("Duplicate barcode within 5 seconds, skipping...");
+            return;
+          }
+          lastBarcode = barcode;
+          lastTimestamp = Date.now();
           // Process barcode and link it to the corresponding RFID
           try {
             const apiUrl = 'http://127.0.0.1:4000/checkBarcode';
@@ -316,9 +322,10 @@ async function multiplemodule(barcode, socket) {
     console.log('2nd module barcode scanned successfully:', scannedBarcode2);
 
     // Send a message to frontend, 2nd module barcode successfully scanned
-    broadcast({ message: '2nd Module Barcode Scanned Successfully! \nModule complete in cell sorting!',
-                barcode 
-              });
+    broadcast({
+      message: '2nd Module Barcode Scanned Successfully! \nModule complete in cell sorting!',
+      barcode
+    });
     // wait for tags to proceed
     if (tags) {
       await processRFIDTags(tags, socket);
