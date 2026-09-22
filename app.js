@@ -28,6 +28,11 @@ const dbConfig = {
 const mainPool = new sql.ConnectionPool(dbConfig);
 const mainPoolConnect = mainPool.connect();
 
+// Prevent an unhandled SQL connection error (e.g. ECONNRESET) from crashing the service.
+mainPool.on('error', (err) => {
+  console.error('SQL pool error:', err.message);
+});
+
 function formatDateTime(dateTime) {
   const dateObj = new Date(dateTime);
   const datePart = dateObj.toISOString().split("T")[0];
