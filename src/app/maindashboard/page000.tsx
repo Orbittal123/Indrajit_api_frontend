@@ -26,6 +26,72 @@ const ECommerce: React.FC = () => {
   const [moduleBarcode4, setModuleBarcode4] = useState<string>("");
   const [wsMessage, setWsMessage] = useState<string>("");
 
+  type LogKind = 'attention' | 'error' | 'success';
+
+  interface LogEntry {
+    id: string;
+    time: string;
+    date: string;
+    message: string;
+    kind: LogKind;
+    barcode: string;
+  }
+
+  const [messageLog, setMessageLog] = useState<LogEntry[]>([]);
+  const [logFilter, setLogFilter] = useState<string>("all");
+
+  const MESSAGE_LOG_LIMIT = 300;
+  const MESSAGE_LOG_KEY = "maindashboard_message_log";
+
+  // Restore the log so a page refresh does not lose what the operator missed
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(MESSAGE_LOG_KEY);
+      if (saved) {
+        setMessageLog(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Could not restore message log:", e);
+    }
+  }, []);
+
+  const logMessage = (entry: { message: string; kind: LogKind; barcode: string }) => {
+    const now = new Date();
+    const record: LogEntry = {
+      id: `${now.getTime()}_${Math.random().toString(16).slice(2)}`,
+      time: now.toLocaleTimeString(),
+      date: now.toLocaleDateString(),
+      ...entry,
+    };
+
+    setMessageLog((previous) => {
+      const next = [record, ...previous].slice(0, MESSAGE_LOG_LIMIT);
+      try {
+        window.localStorage.setItem(MESSAGE_LOG_KEY, JSON.stringify(next));
+      } catch (e) {
+        console.error("Could not persist message log:", e);
+      }
+      return next;
+    });
+  };
+
+  const clearMessageLog = () => {
+    setMessageLog([]);
+    try {
+      window.localStorage.removeItem(MESSAGE_LOG_KEY);
+    } catch (e) {
+      console.error("Could not clear message log:", e);
+    }
+  };
+
+  const filteredLog = logFilter === "all" ? messageLog : messageLog.filter((item) => item.kind === logFilter);
+
+  const kindStyles: Record<LogKind, { label: string; color: string; background: string }> = {
+    attention: { label: "Action Required", color: "#b45309", background: "#fef3c7" },
+    error: { label: "Error", color: "#b91c1c", background: "#fee2e2" },
+    success: { label: "Success", color: "#15803d", background: "#dcfce7" },
+  };
+
   const determineShift = () => {
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
@@ -51,11 +117,30 @@ const ECommerce: React.FC = () => {
       
       // Check if it's an error based on the `type` field sent from the backend
       const isError = messageData.type === 'error';
-    
+
+      // `hold` marks messages that need operator attention
+      const isHold = messageData.hold === true;
+
+      // Keep every message so an operator away from the PC can read what was missed
+      logMessage({
+        message: messageData.message,
+        kind: isHold ? 'attention' : isError ? 'error' : 'success',
+        barcode: messageData.barcode || '',
+      });
+
       // Split the message into lines and define the type for 'line'
       const messageLines = messageData.message.split('\n').map((line: string) => `<strong>${line}</strong>`).join('<br>');
-    
-      if (isError) {
+
+      if (isHold) {
+        // Needs attention, but still auto dismisses so the line is never blocked by a popup
+        Swal.fire({
+          title: "Action Required",
+          html: `<p style="color:red">${messageLines}</p>`,
+          icon: 'warning',
+          timer: 5000,
+          showConfirmButton: false,
+        });
+      } else if (isError) {
         // Display error popup
         Swal.fire({
           title: "<strong style='color:red'>Error</strong>", // Bold and red "Error"
@@ -70,7 +155,7 @@ const ECommerce: React.FC = () => {
           title: "Success",
           html: `<p style="color:red">${messageLines}</p>`, // Bold message lines
           icon: 'success',
-          timer: 5000, 
+          timer: 5000,
           showConfirmButton: false,
         });
       }
@@ -258,6 +343,84 @@ const ECommerce: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      <Card className="m-4 p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-black">Message History</h3>
+            <p className="text-sm text-gray-600">
+              Every popup is recorded here, so messages missed while away from the PC can still be read.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {["all", "attention", "error", "success"].map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setLogFilter(option)}
+                className="rounded border px-3 py-1 text-sm font-semibold capitalize"
+                style={{
+                  backgroundColor: logFilter === option ? "#1f2937" : "#ffffff",
+                  color: logFilter === option ? "#ffffff" : "#1f2937",
+                  borderColor: "#d1d5db",
+                }}
+              >
+                {option === "attention" ? "Action Required" : option}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={clearMessageLog}
+              className="rounded border px-3 py-1 text-sm font-semibold"
+              style={{ backgroundColor: "#ffffff", color: "#b91c1c", borderColor: "#d1d5db" }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div style={{ maxHeight: "320px", overflowY: "auto" }}>
+          {filteredLog.length === 0 ? (
+            <p className="py-6 text-center text-sm text-gray-500">No messages recorded yet.</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
+                  <th className="py-2 pr-3 font-semibold text-black" style={{ whiteSpace: "nowrap" }}>Time</th>
+                  <th className="py-2 pr-3 font-semibold text-black" style={{ whiteSpace: "nowrap" }}>Type</th>
+                  <th className="py-2 font-semibold text-black">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLog.map((item) => {
+                  const style = kindStyles[item.kind] || kindStyles.success;
+                  return (
+                    <tr key={item.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                      <td className="py-2 pr-3 align-top" style={{ whiteSpace: "nowrap" }}>
+                        <div className="font-semibold text-black">{item.time}</div>
+                        <div className="text-xs text-gray-500">{item.date}</div>
+                      </td>
+                      <td className="py-2 pr-3 align-top" style={{ whiteSpace: "nowrap" }}>
+                        <span
+                          className="rounded px-2 py-1 text-xs font-bold"
+                          style={{ color: style.color, backgroundColor: style.background }}
+                        >
+                          {style.label}
+                        </span>
+                      </td>
+                      <td className="py-2 align-top text-black" style={{ whiteSpace: "pre-wrap" }}>
+                        {item.message}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </Card>
 
       <style jsx>{`
         .module-input {

@@ -54,6 +54,8 @@ let processedRFIDs = [];
 let moduleType = 2;
 let lastBarcode = null;
 let lastTimestamp = 0;
+let lastWaitingNotice = null;
+let lastAlreadyOkNotice = null;
 
 
 // Create a server to listen on port 7080
@@ -391,8 +393,24 @@ async function processRFIDTagsSingle(tags, socket) {
       // If result1.recordset is an array and you want to access the first element
       const record = result1.recordset[0]; // Access the first record
 
+      // Do not start the cycle again if this module already passed Vision 1
+      let v1AlreadyOk = false;
+      const v1StatusResult = await request.query(`SELECT v1_status FROM [replus_treceability].[dbo].[clw_station_status] WHERE module_barcode = '${singleBarcode}'`);
+      if (v1StatusResult.recordset.length > 0 && v1StatusResult.recordset[0].v1_status === 'OK') {
+        v1AlreadyOk = true;
+        console.log(`Vision 1 status is already OK for module: ${singleBarcode}. Cycle will not start again.`);
 
-      if (record && record.module_barcode !== '' && record.RFID !== '' && record.RFID !== null) {
+        const okNoticeKey = `v1_${singleBarcode}`;
+        if (lastAlreadyOkNotice !== okNoticeKey) {
+          lastAlreadyOkNotice = okNoticeKey;
+          broadcast({
+            message: `Vision 1 is already OK for module ${singleBarcode}.\nCycle will not start again.`,
+            hold: true
+          });
+        }
+      }
+
+      if (!v1AlreadyOk && record && record.module_barcode !== '' && record.RFID !== '' && record.RFID !== null) {
         console.log(record);
         // Send success message to frontend for linking
         if (CycleStartConfirm !== true) {
@@ -454,6 +472,33 @@ async function processRFIDTags(tags, socket) {
   const CycleStartConfirm = tags.vision1.CycleStartConfirm;
   console.log("Processing RFID for multiple modules:", RFID);
 
+  // Double module flow: do not start the cycle until BOTH module barcodes are scanned.
+  // Without this, a single scan links a half barcode pair and sets CycleStartConfirm true.
+  if (moduleType === 2) {
+    const haveBarcode1 = scannedBarcode1 !== null && scannedBarcode1 !== undefined && scannedBarcode1 !== "" && scannedBarcode1 !== "null";
+    const haveBarcode2 = scannedBarcode2 !== null && scannedBarcode2 !== undefined && scannedBarcode2 !== "" && scannedBarcode2 !== "null";
+
+    if (!haveBarcode1 || !haveBarcode2) {
+      const pendingModule = !haveBarcode1 ? '1st' : '2nd';
+
+      // RFID tags arrive continuously, so only notify once per RFID/pending module
+      const noticeKey = `${RFID}_${pendingModule}`;
+      if (lastWaitingNotice !== noticeKey) {
+        lastWaitingNotice = noticeKey;
+        broadcast({
+          message: `Double Module Mode: Please scan the ${pendingModule} Module Barcode.\nCycle will not start until both modules are scanned.`,
+          hold: true
+        });
+      }
+
+      console.log(`Double module: waiting for both barcodes before starting cycle. barcode1: ${haveBarcode1 ? scannedBarcode1 : 'not scanned'}, barcode2: ${haveBarcode2 ? scannedBarcode2 : 'not scanned'}`);
+      return;
+    }
+
+    // Both barcodes present, allow a fresh notice for the next module pair
+    lastWaitingNotice = null;
+  }
+
   try {
     const request = new sql.Request(mainPool);
 
@@ -477,7 +522,28 @@ async function processRFIDTags(tags, socket) {
 
     const result1 = await request.query(selectQuery);
     const record = result1 && result1.recordset && result1.recordset[0];
-    if (record && record.module_barcode !== '' && record.RFID !== '' && record.RFID !== null && (tags.vision1.OKStatus !== true && tags.vision1.NOKStatus !== true)) {
+
+    // Do not start the cycle again if BOTH modules already passed Vision 1
+    let v1AlreadyOk = false;
+    const v1StatusResult = await request.query(`SELECT module_barcode, v1_status FROM [replus_treceability].[dbo].[clw_station_status] WHERE module_barcode IN ('${scannedBarcode1}', '${scannedBarcode2}')`);
+    const barcode1Ok = v1StatusResult.recordset.some(row => row.module_barcode === scannedBarcode1 && row.v1_status === 'OK');
+    const barcode2Ok = v1StatusResult.recordset.some(row => row.module_barcode === scannedBarcode2 && row.v1_status === 'OK');
+
+    if (barcode1Ok && barcode2Ok) {
+      v1AlreadyOk = true;
+      console.log(`Vision 1 status is already OK for both modules: ${scannedBarcode1}, ${scannedBarcode2}. Cycle will not start again.`);
+
+      const okNoticeKey = `v1_${scannedBarcode1}_${scannedBarcode2}`;
+      if (lastAlreadyOkNotice !== okNoticeKey) {
+        lastAlreadyOkNotice = okNoticeKey;
+        broadcast({
+          message: `Vision 1 is already OK for modules ${scannedBarcode1} and ${scannedBarcode2}.\nCycle will not start again.`,
+          hold: true
+        });
+      }
+    }
+
+    if (!v1AlreadyOk && record && record.module_barcode !== '' && record.RFID !== '' && record.RFID !== null && (tags.vision1.OKStatus !== true && tags.vision1.NOKStatus !== true)) {
       // Write the CycleStartConfirm tag to true for Vision1 for multiple barcodes
       // Send message to frontend
       if (CycleStartConfirm !== true) {
@@ -659,6 +725,12 @@ async function processVision1Single(singleBarcode, tags, socket) {
       const selectQuery = `SELECT * FROM [replus_treceability].[dbo].[clw_station_status] WHERE module_barcode = '${singleBarcode}'`;
       const statusResult = await request.query(selectQuery);
 
+      // Already OK at Vision 1, do not update or insert in clw_station_status again
+      if (statusResult.recordset.length > 0 && statusResult.recordset[0].v1_status === 'OK') {
+        console.log(`Vision 1 already OK for module: ${singleBarcode}. Skipping clw_station_status update/insert.`);
+        return;
+      }
+
       if (statusResult.recordset.length > 0) {
         // Update the existing record
         const updateQuery = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET v1_status = '${statusToStore}', v1_error = '${errorDescription}', RFID = '${RFID}',v1_end_date = '${today_date}' WHERE module_barcode = '${singleBarcode}'`;
@@ -791,8 +863,14 @@ async function processVision1(scannedBarcode1, scannedBarcode2, tags, socket) {
 
       for (const barcode of [scannedBarcode1, scannedBarcode2]) {
         // Check if the module already exists in `clw_station_status`
-        const statusCheckQuery = `SELECT module_barcode FROM [replus_treceability].[dbo].[clw_station_status] WHERE module_barcode = '${barcode}'`;
+        const statusCheckQuery = `SELECT module_barcode, v1_status FROM [replus_treceability].[dbo].[clw_station_status] WHERE module_barcode = '${barcode}'`;
         const statusResult = await request.query(statusCheckQuery);
+
+        // Already OK at Vision 1, do not update or insert in clw_station_status again
+        if (statusResult.recordset.length > 0 && statusResult.recordset[0].v1_status === 'OK') {
+          console.log(`Vision 1 already OK for module: ${barcode}. Skipping clw_station_status update/insert.`);
+          continue;
+        }
 
 
 
@@ -811,7 +889,7 @@ async function processVision1(scannedBarcode1, scannedBarcode2, tags, socket) {
 
           } else {
             // Insert a new record if it doesn't exist
-            const insertQuery = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID,  v1_end_date) VALUES ('${barcode}', '${statusToStore}', 'null', '${RFID}','${today_date}')`;
+            const insertQuery = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID, v1_start_date, v1_end_date) VALUES ('${barcode}', '${statusToStore}', 'null', '${RFID}', '${globalFormattedDateTime}', '${today_date}')`;
             await request.query(insertQuery);
             console.log(`Inserted new clw_station_status record for barcode: ${combinedBarcodes}`);
 
@@ -920,11 +998,11 @@ async function processVision1(scannedBarcode1, scannedBarcode2, tags, socket) {
 
             } else {
               // Insert a new record if it doesn't exist
-              const insertQuery1 = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID, v1_end_date) VALUES ('${scannedBarcode1}', 'NOT OK', '${errorDescription}', '${RFID}','${today_date}')`;
+              const insertQuery1 = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID, v1_start_date, v1_end_date) VALUES ('${scannedBarcode1}', 'NOT OK', '${errorDescription}', '${RFID}', '${globalFormattedDateTime}', '${today_date}')`;
               await request.query(insertQuery1);
               console.log(`Inserted new clw_station_status record for barcode: ${scannedBarcode1}`);
 
-              const insertQuery2 = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID, v1_end_date) VALUES ('${scannedBarcode2}', 'NOT OK', '${errorDescription}', '${RFID}','${today_date}')`;
+              const insertQuery2 = `INSERT INTO [replus_treceability].[dbo].[clw_station_status] (module_barcode, v1_status, v1_error, RFID, v1_start_date, v1_end_date) VALUES ('${scannedBarcode2}', 'NOT OK', '${errorDescription}', '${RFID}', '${globalFormattedDateTime}', '${today_date}')`;
               await request.query(insertQuery2);
               console.log(`Inserted new clw_station_status record for barcode: ${scannedBarcode2}`);
 
