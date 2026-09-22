@@ -62,6 +62,16 @@ let lastAlreadyOkNotice = null;
 const server = net.createServer(async (socket) => {
   console.log('Client connected....');
 
+  // Prevent an unhandled socket error from crashing the whole service.
+  // The client (PLC/scanner) is free to reconnect afterwards on the same port.
+  socket.on('error', (err) => {
+    console.error('Socket error:', err.message);
+  });
+
+  socket.on('close', (hadError) => {
+    console.log(`Client disconnected${hadError ? ' (due to error)' : ''}. Waiting for reconnection...`);
+  });
+
   const result = await mainPool.request().query(`
     SELECT sr_no, no_of_modules, date_time 
     FROM dbo.vision_pack_module_count
@@ -1837,6 +1847,10 @@ async function processFpcb(tags, socket) {
     console.error('Error processing FPCB RFID:', error.message);
   }
 }
+server.on('error', (err) => {
+  console.error('Server error:', err.message);
+});
+
 server.listen(7080, () => {
   console.log('Server listening on port 7080');
 });
