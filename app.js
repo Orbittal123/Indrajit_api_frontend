@@ -1230,7 +1230,7 @@ async function processVision2(tags, socket) {
               await writeCycleStartConfirmvision2(tags.vision2.RFID, socket, true);
 
 
-              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET v2_start_date =  GETDATE()  WHERE module_barcode = '${barcode}'`;
+              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET v2_start_date =  GETDATE()  WHERE module_barcode = '${barcode.trim()}'`;
               await request.query(updateClwStationQuery1);
 
             }
@@ -1495,7 +1495,7 @@ async function processWelding(tags, socket) {
 
               await writeCycleStartConfirmwelding(tags.welding.RFID, socket, true);
 
-              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET welding_start_date = GETDATE() WHERE module_barcode = '${barcode}'`;
+              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET welding_start_date = GETDATE() WHERE module_barcode = '${barcode.trim()}'`;
               await request.query(updateClwStationQuery1);
               console.log("quey welding start date update ", updateClwStationQuery1);
             }
@@ -1708,7 +1708,7 @@ async function processFpcb(tags, socket) {
               };
               await writeCycleStartConfirmfpcb(tags.fpcb.RFID, socket, true);
 
-              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET fpcb_start_date = GETDATE() WHERE module_barcode = '${barcode}'`;
+              const updateClwStationQuery1 = `UPDATE [replus_treceability].[dbo].[clw_station_status] SET fpcb_start_date = GETDATE() WHERE module_barcode = '${barcode.trim()}'`;
               await request.query(updateClwStationQuery1);
 
             }
